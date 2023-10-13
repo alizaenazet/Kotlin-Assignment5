@@ -16,11 +16,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -29,25 +26,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.week5.kalkulatorNilai.model.Subject
 import com.example.week5.kalkulatorNilai.modelView.KalkulatorNilaiViewModel
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun kalkulatorNilai(){
-    val kalkulatorNilaiViewModel = viewModel<KalkulatorNilaiViewModel>()
-
-    var subjects by rememberSaveable { mutableStateOf(HashMap<String,Subject>()) }
-    val initSubjects: (HashMap<String,Subject>)-> Unit = {subjects = it};
-    var sksInput by remember { mutableStateOf("") }
-    val setSks : (sks: String)-> Unit = {sksInput = it}
-    var scoreInput by remember { mutableStateOf("") }
-    val setScore: (score: String)-> Unit = {scoreInput = it}
-    var nameInput by remember { mutableStateOf("") }
-    val setName: (name: String)-> Unit = {nameInput = it}
-    val deleteSubject: (name:String)-> Unit = { kalkulatorNilaiViewModel.removeSubject(it);
-        initSubjects(kalkulatorNilaiViewModel.getData().subjects) }
+fun kalkulatorNilai(
+    kalkulatorNilaiViewModel: KalkulatorNilaiViewModel = viewModel()
+){
+    val kalkulatorNilaiUiState by kalkulatorNilaiViewModel.uiState.collectAsState()
 
     LazyColumn(
         contentPadding = PaddingValues(16.dp, 8.dp),
@@ -58,70 +44,96 @@ fun kalkulatorNilai(){
         }
 
         item {
-            Text(text = "Total SKS: ${kalkulatorNilaiViewModel.getData().sksTotal}")
+            Text(text = "Total SKS: ${kalkulatorNilaiUiState.sksTotal}")
         }
 
         item {
-            Text(text = "IPK: ${kalkulatorNilaiViewModel.getData().ipk}")
+            Text(text = "IPK: ${kalkulatorNilaiUiState.ipk}")
         }
 
         item {
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-            ){
-                OutlinedTextField(
-                    value = sksInput,
-                    onValueChange = setSks,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    label = { Text(text = "SKS")},
-                    modifier = Modifier
-                        .weight(1f)
-                )
-                OutlinedTextField(
-                    value = scoreInput,
-                    onValueChange = setScore,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    label = { Text(text = "Score")},
-                    modifier = Modifier
-                        .weight(1f)
-                )
-            }
+            sksAndIpkInput(
+                userSksInput = kalkulatorNilaiViewModel.userSksInput,
+                onSksChange = { kalkulatorNilaiViewModel.onSksInputChange(it) },
+                userScoreInput = kalkulatorNilaiViewModel.userScoreInput,
+                onScoreChange = { kalkulatorNilaiViewModel.onScoreInputChange(it) }
+            )
         }
 
-        item { 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(value = nameInput,
-                    onValueChange = setName,
-                    label = { Text(text = "Name")},
-                    modifier = Modifier
-                )
-                Button(
-                    onClick = {
-                              kalkulatorNilaiViewModel.addNewSubject(
-                                  nameInput,
-                                  sksInput.toInt(),
-                                  scoreInput.toDouble());
-                            initSubjects(kalkulatorNilaiViewModel.getData().subjects)
-                              },
-                    modifier = Modifier
-                        .fillMaxHeight()) {
-                    Icon(imageVector = Icons.Filled.Add, contentDescription = "ADD icon")
-                }
-            }
+        item {
+            nameAndButtonRow(
+                userNameInput = kalkulatorNilaiViewModel.userNameInput,
+                onNameInputChange = { kalkulatorNilaiViewModel.onNameInputChange(it) },
+                onAddSubjectClick = { kalkulatorNilaiViewModel.onAddSubjectClik() }
+            )
         }
 
-        items(ArrayList(subjects.values)){subject ->
-            subjectCard(subject = subject, deleteSubject = deleteSubject)
+        items(ArrayList(kalkulatorNilaiUiState.subjects.values)){subject ->
+            subjectCard(subject = subject, deleteSubject = { kalkulatorNilaiViewModel.removeSubject(it) } )
         }
 
 
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun sksAndIpkInput(
+    userSksInput: String,
+    onSksChange: (String) -> Unit,
+    userScoreInput: String,
+    onScoreChange: (String) -> Unit
+){
+    Row (
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+    ){
+        OutlinedTextField(
+            value = userSksInput,
+            onValueChange = onSksChange,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = { Text(text = "SKS")},
+            modifier = Modifier
+                .weight(1f)
+        )
+        OutlinedTextField(
+            value = userScoreInput,
+            onValueChange = onScoreChange,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = { Text(text = "Score")},
+            modifier = Modifier
+                .weight(1f)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun nameAndButtonRow(
+    userNameInput: String,
+    onNameInputChange: (String)-> Unit,
+    onAddSubjectClick: ()-> Unit
+){
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(value = userNameInput,
+            onValueChange = onNameInputChange,
+            label = { Text(text = "Name")},
+            modifier = Modifier
+        )
+        Button(
+            onClick = { onAddSubjectClick() },
+            modifier = Modifier
+                .fillMaxHeight()) {
+            Icon(imageVector = Icons.Filled.Add, contentDescription = "ADD icon")
+        }
+    }
+}
+
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

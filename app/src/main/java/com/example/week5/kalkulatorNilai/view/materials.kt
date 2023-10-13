@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.dp
 import com.example.week5.kalkulatorNilai.model.Subject
 
 @Composable
-fun subjectCard(subject: Subject, deleteSubject: (String)->Unit){
+fun subjectCard(subject: Subject,
+                deleteSubject: (String) -> Unit ){
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -44,7 +45,7 @@ fun subjectCard(subject: Subject, deleteSubject: (String)->Unit){
                     Text(text = "Score: ${subject.score}")
                 }
                 Button(
-                    onClick = { deleteSubject(subject.name)},
+                    onClick = { deleteSubject(subject.name) },
                     colors = ButtonDefaults.buttonColors(Color.Transparent)) {
                         Icon(imageVector = Icons.Filled.Delete,
                             contentDescription = "DELETE icon",
