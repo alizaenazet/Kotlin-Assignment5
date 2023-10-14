@@ -5,12 +5,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertDialogExample(
-    onDismissRequest: () -> Unit,
+    onDismissRequest: () -> Unit?,
     onConfirmation: () -> Unit,
     dialogTitle: String,
     dialogText: String,
@@ -31,7 +30,7 @@ fun AlertDialogExample(
                     onConfirmation()
                 }
             ) {
-                Text("Confirm")
+                Text("Try again")
             }
         },
         dismissButton = {
@@ -40,7 +39,7 @@ fun AlertDialogExample(
                     onDismissRequest()
                 }
             ) {
-                Text("Dismiss")
+                Text("Exit")
             }
         }
     )
